@@ -1,4 +1,4 @@
-## FinneyBot
+## Minecraft Bot
 
 Sup, I'm Finn.
 This is a Minecraft bot built with Node.js using Mineflayer.
