@@ -3,7 +3,7 @@ const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 
 const bot = mineflayer.createBot({
     host: 'localhost',
-    port: 23003,
+    port: 1735,
     username: 'FinneyBot',
     version: '1.21.11',
     auth: 'offline'
@@ -141,24 +141,24 @@ bot.on('chat', (username, message) => {
     //Comando para que el bot pueda minar el bloque que esta mirando 
 
     if (msg === 'mina' || msg === 'mine') {
-        const target = bot.entityAtCursor(5);   // Mira hasta 5 bloques de distancia
+        const target = bot.entityAtCursor(5);   // Bloque que estás mirando (hasta 5 bloques)
 
         if (!target) {
-            bot.chat("No estoy viendo ningún bloque para minar.");
+            bot.chat("❌ No estoy viendo ningún bloque cerca.");
             return;
         }
 
-        // Opcional: Decirle qué bloque va a minar
-        bot.chat(`Minando ${target.name}...`);
+        bot.chat(`⛏ Minando ${target.name}...`);
 
-        bot.dig(target)
-            .then(() => {
-                bot.chat("¡Bloque minado exitosamente!");
-            })
-            .catch((err) => {
-                bot.chat("No pude minar ese bloque.");
-                console.log(err);
-            });
+        // Nueva forma recomendada de minar
+        bot.dig(target, (err) => {
+            if (err) {
+                bot.chat("❌ No pude minar ese bloque.");
+                console.error(err);
+            } else {
+                bot.chat("✅ ¡Bloque minado exitosamente!");
+            }
+        });
     }
 });
 
