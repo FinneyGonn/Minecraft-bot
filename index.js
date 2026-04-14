@@ -13,7 +13,7 @@ bot.loadPlugin(pathfinder)
 
 bot.once('spawn', () => {
     console.log(` Bot ${bot.username} conectado correctamente!`)
-    bot.chat('¡Hola! Estoy listo. Escribe comandos como: ven, mirame, salta, para')
+    bot.chat('¡Hola! Estoy listo. Escribe comandos como: ven, mirame, salta, sigueme, detente, mina')
 
     // Configuración de movimiento
     const mcData = require('minecraft-data')(bot.version)
