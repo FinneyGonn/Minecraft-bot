@@ -177,7 +177,7 @@ bot.on('chat', (username, message) => {
         });
     }
 
-    // ==================== AUTO MINING ====================
+    // ==================== AUTO MINING SIMPLE ====================
     let isAutoMining = false;
 
     if (msg === '#mina') {
@@ -198,40 +198,34 @@ bot.on('chat', (username, message) => {
         bot.stopDigging();
     }
 
-    // ====================== FUNCIÓN PRINCIPAL ======================
+    // ====================== LOOP SIMPLE ======================
     async function autoMineLoop() {
         while (isAutoMining) {
+
             // Buscar piedra cercana
             const target = bot.findBlock({
                 matching: (block) => block.name === 'stone' || block.name === 'deepslate',
-                maxDistance: 10,
+                maxDistance: 12,
                 count: 1
             });
 
             if (!target) {
-                bot.chat("❌ No encontré piedra cerca. Intentando moverme...");
-                // Movimiento simple
-                const movements = new Movements(bot);
-                bot.pathfinder.setMovements(movements);
-                await bot.pathfinder.goto(new GoalNear(
-                    bot.entity.position.x,
-                    bot.entity.position.y,
-                    bot.entity.position.z,
-                    4
-                ));
-                await new Promise(r => setTimeout(r, 1500));
+                bot.chat("❌ No encontré piedra cerca. Esperando 3 segundos...");
+                await new Promise(r => setTimeout(r, 3000));
                 continue;
             }
 
-            // Equipar pico si tiene
+            // Equipar pico automáticamente si tiene uno
             const pickaxe = bot.inventory.items().find(item =>
                 item.name.includes('pickaxe')
             );
             if (pickaxe) {
-                await bot.equip(pickaxe, 'hand').catch(() => { });
+                try {
+                    await bot.equip(pickaxe, 'hand');
+                } catch (e) { }
             }
 
-            // Mirar y minar
+            // Mirar al bloque
             const lookPos = target.position.offset(0.5, 0.5, 0.5);
             await bot.lookAt(lookPos, true);
 
@@ -241,11 +235,12 @@ bot.on('chat', (username, message) => {
                 await bot.dig(target);
                 bot.chat("✅ Piedra minada.");
             } catch (err) {
-                // Si falla, continuamos
                 console.error(err);
+                bot.chat("❌ Falló al minar.");
             }
 
-            await new Promise(r => setTimeout(r, 400)); // pausa corta
+            // Pausa corta entre bloques
+            await new Promise(r => setTimeout(r, 600));
         }
     }
 });
