@@ -142,38 +142,37 @@ bot.on('chat', (username, message) => {
 
     if (msg === 'mina' || msg === 'mine') {
 
-        const target = bot.findBlock({
-            matching: (block) => {
-                return block && bot.canDigBlock(block);
-            },
-            maxDistance: 8,
-            count: 1
-        });
+        // Buscamos el bloque justo enfrente del bot (más estable)
+        const frontBlock = bot.blockAt(bot.entity.position.offset(0, 0, 1));   // 1 bloque enfrente
+        const belowBlock = bot.blockAt(bot.entity.position.offset(0, -1, 0)); // bloque debajo (por si acaso)
 
-        // === Protección contra null ===
+        let target = null;
+
+        // Prioridad: bloque enfrente → bloque debajo
+        if (frontBlock && bot.canDigBlock(frontBlock)) {
+            target = frontBlock;
+        } else if (belowBlock && bot.canDigBlock(belowBlock)) {
+            target = belowBlock;
+        }
+
         if (!target) {
-            bot.chat("❌ No encuentro ningún bloque que pueda minar cerca de mí.");
+            bot.chat("❌ No encuentro ningún bloque minable cerca (prueba parándote justo enfrente de uno).");
             return;
         }
 
-        // Verificamos que tenga posición (por seguridad)
-        if (!target.position) {
-            bot.chat("❌ El bloque encontrado no tiene posición válida.");
-            return;
-        }
-
-        // Hacemos que el bot mire al centro del bloque
-        const lookPos = target.position.offset(0.5, 0.5, 0.5);
-        bot.lookAt(lookPos, true);
+        // Miramos correctamente al bloque
+        const lookPosition = target.position.offset(0.5, 0.5, 0.5);
+        bot.lookAt(lookPosition, true);
 
         bot.chat(`⛏ Minando ${target.name}...`);
 
+        // Dig con callback (más estable)
         bot.dig(target, (err) => {
             if (err) {
                 bot.chat("❌ No pude minar el bloque.");
-                console.error("Error al minar:", err.message);
+                console.error(err.message);
             } else {
-                bot.chat("✅ ¡Bloque minado exitosamente!");
+                bot.chat("✅ ¡Bloque minado!");
             }
         });
     }
