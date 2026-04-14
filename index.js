@@ -177,7 +177,6 @@ bot.on('chat', (username, message) => {
         });
     }
 
-    // ==================== AUTO MINING SIMPLE ====================
     // ==================== AUTO MINING - TODO LO QUE TENGA AL FRENTE ====================
     let isAutoMining = false;
 
