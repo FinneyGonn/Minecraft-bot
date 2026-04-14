@@ -141,28 +141,33 @@ bot.on('chat', (username, message) => {
     //Comando para que el bot pueda minar el bloque que esta mirando 
 
     if (msg === 'mina' || msg === 'mine') {
-        // Usamos blockAtCursor en vez de entityAtCursor
-        const target = bot.blockAtCursor(6);   // Hasta 6 bloques de distancia
+        const target = bot.blockAtCursor(8);   // Aumentamos a 8 para más rango
 
         if (!target) {
-            bot.chat("❌ No estoy viendo ningún bloque. Acércate más y míralo directamente.");
+            bot.chat("❌ No estoy mirando ningún bloque. Acércate más y míralo directo con la cruz.");
             return;
         }
 
-        // Verificamos si se puede minar
         if (!bot.canDigBlock(target)) {
             bot.chat(`❌ No puedo minar ${target.name}.`);
             return;
         }
 
-        bot.chat(`⛏ Minando ${target.name}...`);
+        // Hacemos que el bot mire bien al bloque antes de minar
+        bot.lookAt(target.position.offset(0.5, 0.5, 0.5), true);
+
+        bot.chat(`⛏ Empezando a minar ${target.name}...`);
 
         bot.dig(target, (err) => {
             if (err) {
-                bot.chat("❌ No pude terminar de minar.");
-                console.error(err);
+                if (err.message.includes("aborted") || err.message.includes("cancelled")) {
+                    bot.chat("⛏ Minado interrumpido.");
+                } else {
+                    bot.chat("❌ Error al minar.");
+                    console.error(err);
+                }
             } else {
-                bot.chat("✅ ¡Bloque minado!");
+                bot.chat("✅ ¡Bloque minado completamente!");
             }
         });
     }
