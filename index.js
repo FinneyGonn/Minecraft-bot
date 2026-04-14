@@ -141,33 +141,34 @@ bot.on('chat', (username, message) => {
     //Comando para que el bot pueda minar el bloque que esta mirando 
 
     if (msg === 'mina' || msg === 'mine') {
-        const target = bot.blockAtCursor(8);   // Aumentamos a 8 para más rango
+
+        // Busca el bloque más cercano que el bot pueda ver y minar
+        const target = bot.findBlock({
+            matching: (block) => {
+                return block && bot.canDigBlock(block);   // Solo bloques que se puedan minar
+            },
+            maxDistance: 6,      // Distancia máxima (puedes subir a 8 o 10)
+            count: 1
+        });
 
         if (!target) {
-            bot.chat("❌ No estoy mirando ningún bloque. Acércate más y míralo directo con la cruz.");
+            bot.chat("❌ No encuentro ningún bloque que pueda minar cerca.");
             return;
         }
 
-        if (!bot.canDigBlock(target)) {
-            bot.chat(`❌ No puedo minar ${target.name}.`);
-            return;
-        }
+        // El bot mira correctamente hacia el centro del bloque
+        const lookPosition = target.position.offset(0.5, 0.5, 0.5);
+        bot.lookAt(lookPosition, true);   // true = mirar rápido
 
-        // Hacemos que el bot mire bien al bloque antes de minar
-        bot.lookAt(target.position.offset(0.5, 0.5, 0.5), true);
+        bot.chat(`⛏ Minando ${target.name} que está enfrente...`);
 
-        bot.chat(`⛏ Empezando a minar ${target.name}...`);
-
+        // Empezamos a minar
         bot.dig(target, (err) => {
             if (err) {
-                if (err.message.includes("aborted") || err.message.includes("cancelled")) {
-                    bot.chat("⛏ Minado interrumpido.");
-                } else {
-                    bot.chat("❌ Error al minar.");
-                    console.error(err);
-                }
+                bot.chat("❌ No pude minar el bloque.");
+                console.error(err);
             } else {
-                bot.chat("✅ ¡Bloque minado completamente!");
+                bot.chat("✅ ¡Bloque minado!");
             }
         });
     }
