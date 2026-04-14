@@ -137,6 +137,29 @@ bot.on('chat', (username, message) => {
         bot.clearControlStates();
         bot.chat('Me detuve');
     }
+
+    //Comando para que el bot pueda minar el bloque que esta mirando 
+
+    if (msg === 'mina' || msg === 'mine') {
+        const target = bot.entityAtCursor(5);   // Mira hasta 5 bloques de distancia
+
+        if (!target) {
+            bot.chat("No estoy viendo ningún bloque para minar.");
+            return;
+        }
+
+        // Opcional: Decirle qué bloque va a minar
+        bot.chat(`Minando ${target.name}...`);
+
+        bot.dig(target)
+            .then(() => {
+                bot.chat("¡Bloque minado exitosamente!");
+            })
+            .catch((err) => {
+                bot.chat("No pude minar ese bloque.");
+                console.log(err);
+            });
+    }
 });
 
 
