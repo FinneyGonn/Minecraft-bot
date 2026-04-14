@@ -176,6 +176,78 @@ bot.on('chat', (username, message) => {
             }
         });
     }
+
+    // ==================== AUTO MINING ====================
+    let isAutoMining = false;
+
+    if (msg === '#mina') {
+        if (isAutoMining) {
+            bot.chat("⚠️ Ya estoy en modo auto-mining.");
+            return;
+        }
+
+        isAutoMining = true;
+        bot.chat("⛏ Modo auto-mining ACTIVADO. Buscando piedra...");
+
+        autoMineLoop();
+    }
+
+    if (msg === '#stop' || msg === '#parar') {
+        if (!isAutoMining) {
+            bot.chat("No estoy minando automáticamente.");
+            return;
+        }
+
+        isAutoMining = false;
+        bot.chat("⛔ Modo auto-mining DETENIDO.");
+        bot.stopDigging(); // por si estaba minando un bloque
+    }
+
+    // ====================== LOOP PRINCIPAL ======================
+    async function autoMineLoop() {
+        while (isAutoMining) {
+            // Buscar bloque de piedra cercano
+            const target = bot.findBlock({
+                matching: (block) => block.name === 'stone' || block.name === 'deepslate',
+                maxDistance: 10,
+                count: 1
+            });
+
+            if (!target) {
+                bot.chat("❌ No encontré más piedra cerca. Moviendo un poco...");
+                // Pequeño movimiento para buscar más bloques
+                await bot.pathfinder.goto(new GoalNear(bot.entity.position.x, bot.entity.position.y, bot.entity.position.z, 3));
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
+            }
+
+            // Equipar pico automáticamente
+            const pickaxe = bot.inventory.items().find(item =>
+                item.name.includes('pickaxe')
+            );
+
+            if (pickaxe) {
+                await bot.equip(pickaxe, 'hand');
+            }
+
+            // Mirar al bloque
+            const lookPos = target.position.offset(0.5, 0.5, 0.5);
+            await bot.lookAt(lookPos, true);
+
+            bot.chat(`⛏ Minando piedra (${target.name})...`);
+
+            try {
+                await bot.dig(target);
+                bot.chat("✅ Piedra minada.");
+            } catch (err) {
+                bot.chat("❌ Error al minar.");
+                console.error(err);
+            }
+
+            // Pequeña pausa para no saturar
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+    }
 });
 
 
