@@ -142,33 +142,38 @@ bot.on('chat', (username, message) => {
 
     if (msg === 'mina' || msg === 'mine') {
 
-        // Busca el bloque más cercano que el bot pueda ver y minar
         const target = bot.findBlock({
             matching: (block) => {
-                return block && bot.canDigBlock(block);   // Solo bloques que se puedan minar
+                return block && bot.canDigBlock(block);
             },
-            maxDistance: 6,      // Distancia máxima (puedes subir a 8 o 10)
+            maxDistance: 8,
             count: 1
         });
 
+        // === Protección contra null ===
         if (!target) {
-            bot.chat("❌ No encuentro ningún bloque que pueda minar cerca.");
+            bot.chat("❌ No encuentro ningún bloque que pueda minar cerca de mí.");
             return;
         }
 
-        // El bot mira correctamente hacia el centro del bloque
-        const lookPosition = target.position.offset(0.5, 0.5, 0.5);
-        bot.lookAt(lookPosition, true);   // true = mirar rápido
+        // Verificamos que tenga posición (por seguridad)
+        if (!target.position) {
+            bot.chat("❌ El bloque encontrado no tiene posición válida.");
+            return;
+        }
 
-        bot.chat(`⛏ Minando ${target.name} que está enfrente...`);
+        // Hacemos que el bot mire al centro del bloque
+        const lookPos = target.position.offset(0.5, 0.5, 0.5);
+        bot.lookAt(lookPos, true);
 
-        // Empezamos a minar
+        bot.chat(`⛏ Minando ${target.name}...`);
+
         bot.dig(target, (err) => {
             if (err) {
                 bot.chat("❌ No pude minar el bloque.");
-                console.error(err);
+                console.error("Error al minar:", err.message);
             } else {
-                bot.chat("✅ ¡Bloque minado!");
+                bot.chat("✅ ¡Bloque minado exitosamente!");
             }
         });
     }
